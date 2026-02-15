@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real Estate Ledger</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <svg width="40" height="40" viewBox="0 0 40 40">
+                    <rect x="5" y="10" width="8" height="8" fill="#FFD700"/>
+                    <rect x="16" y="10" width="8" height="8" fill="#FFD700"/>
+                    <rect x="27" y="10" width="8" height="8" fill="#FFD700"/>
+                    <rect x="5" y="21" width="8" height="8" fill="#FFD700"/>
+                    <rect x="16" y="21" width="8" height="8" fill="#FFD700"/>
+                    <rect x="27" y="21" width="8" height="8" fill="#FFD700"/>
+                </svg>
+                <h1>Real Estate <span>Ledger</span></h1>
+            </div>
+            <div class="account-info">
+                <div class="account-selector">
+                    <label>Active Account:</label>
+                    <select id="accountSelect" class="select-input"></select>
+                </div>
+                <div class="balance-display">
+                    <span id="accountBalance">0.00</span> ETH
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="nav-tabs">
+            <button class="nav-tab active" data-tab="assets">Assets</button>
+            <button class="nav-tab" data-tab="create">Create Asset</button>
+            <button class="nav-tab" data-tab="purchase">Purchase</button>
+            <button class="nav-tab" data-tab="transfer">Transfer</button>
+            <button class="nav-tab" data-tab="marketplace">Marketplace</button>
+            <button class="nav-tab" data-tab="analytics">Analytics</button>
+        </nav>
+
+        <!-- Assets Tab -->
+        <div id="assets" class="tab-content active">
+            <div class="section-header">
+                <h2>Assets Dashboard</h2>
+            </div>
+            <div class="dashboard-layout">
+                <div class="dashboard-main">
+                    <div class="stats-row">
+                        <div class="stat-card">
+                            <span class="stat-label">Total Assets</span>
+                            <span class="stat-value" id="totalAssets">0</span>
+                        </div>
+                    </div>
+                    <div id="assetsList" class="assets-grid"></div>
+                </div>
+                <div class="dashboard-sidebar">
+                    <div class="sidebar-card">
+                        <h3>Top 10 Issuers</h3>
+                        <div id="topIssuers" class="top-issuers-list"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Create Asset Tab -->
+        <div id="create" class="tab-content">
+            <div class="section-header">
+                <h2>Create New Asset</h2>
+                <p class="section-description">Tokenize a real estate property by defining its details</p>
+            </div>
+            <div class="form-card">
+                <form id="createAssetForm">
+                    <div class="form-group">
+                        <label>Asset Name</label>
+                        <input type="text" id="assetName" placeholder="e.g., Luxury Apartment Downtown" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Location</label>
+                        <input type="text" id="assetLocation" placeholder="e.g., New York, NY" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Total Value (ETH)</label>
+                        <input type="number" id="assetValue" step="0.01" placeholder="e.g., 100" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Total Tokens</label>
+                        <input type="number" id="assetTokens" placeholder="e.g., 1000" required>
+                    </div>
+                    <div class="info-box">
+                        <p><strong>Token Price:</strong> <span id="calculatedPrice">0</span> ETH per token</p>
+                    </div>
+                    <button type="submit" class="btn-primary">Create Asset</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Purchase Tab -->
+        <div id="purchase" class="tab-content">
+            <div class="section-header">
+                <h2>Purchase Tokens</h2>
+                <p class="section-description">Buy tokens directly from the issuer</p>
+            </div>
+            <div class="form-card">
+                <form id="purchaseForm">
+                    <div class="form-group">
+                        <label>Select Asset</label>
+                        <select id="purchaseAssetSelect" class="select-input" required></select>
+                    </div>
+                    <div id="purchaseAssetDetails" class="asset-details"></div>
+                    <div class="form-group">
+                        <label>Number of Tokens</label>
+                        <input type="number" id="purchaseAmount" placeholder="e.g., 10" required>
+                    </div>
+                    <div class="info-box">
+                        <p><strong>Total Cost:</strong> <span id="purchaseTotalCost">0</span> ETH</p>
+                        <p><strong>Available from Issuer:</strong> <span id="issuerBalance">0</span> tokens</p>
+                    </div>
+                    <button type="submit" class="btn-primary">Purchase Tokens</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Transfer Tab -->
+        <div id="transfer" class="tab-content">
+            <div class="section-header">
+                <h2>Transfer Tokens</h2>
+                <p class="section-description">Send tokens to another address (no ETH exchange)</p>
+            </div>
+            <div class="form-card">
+                <form id="transferForm">
+                    <div class="form-group">
+                        <label>Select Asset</label>
+                        <select id="transferAssetSelect" class="select-input" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Your Balance</label>
+                        <div class="balance-display-large">
+                            <span id="transferBalance">0</span> tokens
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Recipient Address</label>
+                        <input type="text" id="recipientAddress" placeholder="0x..." required>
+                    </div>
+                    <div class="form-group">
+                        <label>Number of Tokens</label>
+                        <input type="number" id="transferAmount" placeholder="e.g., 5" required>
+                    </div>
+                    <div class="info-box">
+                        <p>⚠️ This is a free transfer. No ETH will be exchanged.</p>
+                        <p>Only token ownership will be updated on the ledger.</p>
+                    </div>
+                    <button type="submit" class="btn-primary">Transfer Tokens</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Marketplace Tab -->
+        <div id="marketplace" class="tab-content">
+            <div class="section-header">
+                <h2>Token Marketplace</h2>
+                <p class="section-description">Buy and sell tokens with other investors</p>
+            </div>
+            
+            <!-- List Tokens Section -->
+            <div class="form-card">
+                <h3>List Your Tokens for Sale</h3>
+                <form id="listTokensForm">
+                    <div class="form-group">
+                        <label>Select Asset</label>
+                        <select id="listAssetSelect" class="select-input" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Your Balance</label>
+                        <div class="balance-display-large">
+                            <span id="listBalance">0</span> tokens
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Number of Tokens to Sell</label>
+                        <input type="number" id="listAmount" placeholder="e.g., 5" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Price per Token (ETH)</label>
+                        <input type="number" id="listPrice" step="0.001" placeholder="e.g., 0.15" required>
+                    </div>
+                    <div class="info-box">
+                        <p><strong>Total Value:</strong> <span id="listTotalValue">0</span> ETH</p>
+                    </div>
+                    <button type="submit" class="btn-primary">List Tokens</button>
+                </form>
+            </div>
+
+            <!-- Active Listings -->
+            <div class="section-header" style="margin-top: 40px;">
+                <h3>Active Listings</h3>
+            </div>
+            <div id="listingsList" class="listings-grid"></div>
+        </div>
+
+        <!-- Analytics Tab -->
+        <div id="analytics" class="tab-content">
+            <div class="section-header">
+                <h2>Top 10 Asset Holders (All Assets)</h2>
+                <p class="section-description">Addresses with the most tokens across all assets</p>
+            </div>
+            <button id="loadTopHolders" class="btn-primary">Load Top Holders</button>
+            <div id="topHoldersResults" style="display: none; margin-top: 20px;">
+                <div id="topHoldersList" class="beneficiaries-list"></div>
+            </div>
+
+            <div class="section-header" style="margin-top: 60px;">
+                <h2>Analytics & Insights</h2>
+                <p class="section-description">View asset ownership and top beneficiaries</p>
+            </div>
+            <div class="form-card">
+                <div class="form-group">
+                    <label>Select Asset</label>
+                    <select id="analyticsAssetSelect" class="select-input"></select>
+                </div>
+                <button id="loadAnalytics" class="btn-primary">Load Analytics</button>
+            </div>
+            
+            <div id="analyticsResults" style="display: none;">
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <span class="stat-label">Total Owners</span>
+                        <span class="stat-value" id="totalOwners">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Total Tokens</span>
+                        <span class="stat-value" id="analyticsTokens">0</span>
+                    </div>
+                </div>
+
+                <div class="section-header">
+                    <h3>Top 10 Beneficiaries</h3>
+                </div>
+                <div id="topBeneficiaries" class="beneficiaries-list"></div>
+
+                <div class="section-header" style="margin-top: 40px;">
+                    <h3>All Owners</h3>
+                </div>
+                <div id="allOwners" class="owners-list"></div>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div id="loadingOverlay" class="loading-overlay">
+            <div class="loading-spinner"></div>
+            <p>Processing transaction...</p>
+        </div>
+
+        <!-- Toast Notification -->
+        <div id="toast" class="toast"></div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
