@@ -26,6 +26,20 @@ def load_contract():
     
     contract = web3.eth.contract(address=contract_address, abi=contract_abi)
 
+def clean_error_message(error):
+    """Clean up error messages to show only relevant information"""
+    error_msg = str(error)
+    
+    # Handle insufficient funds error
+    if 'insufficient funds for gas' in error_msg.lower():
+        return 'Insufficient funds for gas'
+    
+    # Handle revert errors
+    if 'revert' in error_msg:
+        error_msg = error_msg.split('revert')[-1].strip()
+    
+    return error_msg
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -72,10 +86,7 @@ def create_asset():
             'assetId': asset_count
         })
     except Exception as e:
-        error_msg = str(e)
-        if 'revert' in error_msg:
-            error_msg = error_msg.split('revert')[-1].strip()
-        return jsonify({'success': False, 'error': error_msg})
+        return jsonify({'success': False, 'error': clean_error_message(e)})
 
 @app.route('/api/assets', methods=['GET'])
 def get_assets():
@@ -143,10 +154,7 @@ def purchase_tokens():
             'totalCost': web3.from_wei(total_cost, 'ether')
         })
     except Exception as e:
-        error_msg = str(e)
-        if 'revert' in error_msg:
-            error_msg = error_msg.split('revert')[-1].strip()
-        return jsonify({'success': False, 'error': error_msg})
+        return jsonify({'success': False, 'error': clean_error_message(e)})
 
 @app.route('/api/transfer', methods=['POST'])
 def transfer_tokens():
@@ -170,10 +178,7 @@ def transfer_tokens():
             'transactionHash': tx_hash.hex()
         })
     except Exception as e:
-        error_msg = str(e)
-        if 'revert' in error_msg:
-            error_msg = error_msg.split('revert')[-1].strip()
-        return jsonify({'success': False, 'error': error_msg})
+        return jsonify({'success': False, 'error': clean_error_message(e)})
 
 @app.route('/api/list-tokens', methods=['POST'])
 def list_tokens():
@@ -197,10 +202,7 @@ def list_tokens():
             'transactionHash': tx_hash.hex()
         })
     except Exception as e:
-        error_msg = str(e)
-        if 'revert' in error_msg:
-            error_msg = error_msg.split('revert')[-1].strip()
-        return jsonify({'success': False, 'error': error_msg})
+        return jsonify({'success': False, 'error': clean_error_message(e)})
 
 @app.route('/api/listings', methods=['GET'])
 def get_listings():
@@ -244,10 +246,7 @@ def buy_listing():
             'totalPrice': web3.from_wei(total_price, 'ether')
         })
     except Exception as e:
-        error_msg = str(e)
-        if 'revert' in error_msg:
-            error_msg = error_msg.split('revert')[-1].strip()
-        return jsonify({'success': False, 'error': error_msg})
+        return jsonify({'success': False, 'error': clean_error_message(e)})
 
 @app.route('/api/cancel-listing', methods=['POST'])
 def cancel_listing():
@@ -267,10 +266,7 @@ def cancel_listing():
             'transactionHash': tx_hash.hex()
         })
     except Exception as e:
-        error_msg = str(e)
-        if 'revert' in error_msg:
-            error_msg = error_msg.split('revert')[-1].strip()
-        return jsonify({'success': False, 'error': error_msg})
+        return jsonify({'success': False, 'error': clean_error_message(e)})
 
 @app.route('/api/balance/<int:asset_id>/<address>', methods=['GET'])
 def get_balance(asset_id, address):
