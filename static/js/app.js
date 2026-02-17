@@ -80,7 +80,6 @@ function setupEventListeners() {
     
     // Analytics
     document.getElementById('loadAnalytics').addEventListener('click', loadAnalytics);
-    document.getElementById('loadTopHolders').addEventListener('click', loadTopHolders);
 }
 
 // Switch tabs
@@ -103,6 +102,8 @@ function switchTab(tabName) {
         loadListings();
     } else if (tabName === 'analytics') {
         loadAssetsForAnalytics();
+        loadTopAssetsChart();
+        loadTopHoldersChart();
     }
 }
 
@@ -765,6 +766,171 @@ function displayOwners(owners) {
             <div class="beneficiary-tokens">${owner.tokens} tokens</div>
         </div>
     `).join('');
+}
+
+// Load top assets chart
+async function loadTopAssetsChart() {
+    try {
+        const response = await fetch('/api/top-assets');
+        const data = await response.json();
+        
+        if (data.success) {
+            displayTopAssetsChart(data.assets);
+        }
+    } catch (error) {
+        console.error('Failed to load top assets');
+    }
+}
+
+// Display top assets as bar chart
+function displayTopAssetsChart(assets) {
+    const container = document.getElementById('topAssetsChart');
+    
+    if (assets.length === 0) {
+        container.innerHTML = '<div class="empty-state"><p>No assets found. Create and distribute assets to see data.</p></div>';
+        return;
+    }
+    
+    const maxDistributed = Math.max(...assets.map(a => a.distributedTokens));
+    const minDistributed = Math.min(...assets.filter(a => a.distributedTokens > 0).map(a => a.distributedTokens));
+    
+    // Use logarithmic scale if there's a large range
+    const useLogScale = maxDistributed / (minDistributed || 1) > 100;
+    
+    container.innerHTML = assets.map((asset, index) => {
+        let percentage;
+        
+        if (asset.distributedTokens === 0) {
+            percentage = 5;
+        } else if (useLogScale) {
+            const logMax = Math.log10(maxDistributed);
+            const logMin = Math.log10(minDistributed);
+            const logValue = Math.log10(asset.distributedTokens);
+            percentage = ((logValue - logMin) / (logMax - logMin)) * 80 + 20;
+        } else {
+            percentage = Math.max((asset.distributedTokens / maxDistributed) * 100, 20);
+        }
+        
+        const showLabelInside = percentage > 30;
+        const distributionRate = asset.totalTokens > 0 
+            ? ((asset.distributedTokens / asset.totalTokens) * 100).toFixed(1) 
+            : 0;
+        
+        return `
+            <div class="chart-bar-container-asset">
+                <div class="chart-rank">${index + 1}</div>
+                <div class="asset-info-chart">
+                    <div class="asset-name-chart">${asset.name}</div>
+                    <div class="asset-location-chart">📍 ${asset.location}</div>
+                </div>
+                <div class="chart-bar-wrapper">
+                    <div class="chart-bar" style="width: ${percentage}%">
+                        ${showLabelInside ? `<span class="chart-bar-label">${asset.distributedTokens.toLocaleString()} tokens (${distributionRate}%)</span>` : ''}
+                    </div>
+                    ${!showLabelInside ? `<span class="chart-bar-label-outside">${asset.distributedTokens.toLocaleString()} tokens (${distributionRate}%)</span>` : ''}
+                </div>
+                <div class="asset-stats-chart">
+                    <span class="stat-badge">${asset.ownerCount} owners</span>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// Load top holders across all assets as chart
+async function loadTopHoldersChart() {
+    try {
+        const response = await fetch('/api/top-holders-all');
+        const data = await response.json();
+        
+        if (data.success) {
+            displayTopHoldersChart(data.holders);
+        }
+    } catch (error) {
+        console.error('Failed to load top holders');
+    }
+}
+
+// Display top holders as bar chart
+function displayTopHoldersChart(holders) {
+    const container = document.getElementById('topHoldersChart');
+    
+    if (holders.length === 0) {
+        container.innerHTML = '<div class="empty-state"><p>No token holders found. Create assets and purchase tokens to see data.</p></div>';
+        return;
+    }
+    
+    const maxTokens = Math.max(...holders.map(h => h.tokens));
+    const minTokens = Math.min(...holders.map(h => h.tokens));
+    
+    // Use logarithmic scale for better visualization of large differences
+    const logMax = Math.log10(maxTokens);
+    const logMin = Math.log10(minTokens);
+    
+    container.innerHTML = holders.map((holder, index) => {
+        // Calculate percentage using log scale, then map to 20-100% range
+        const logValue = Math.log10(holder.tokens);
+        const logPercentage = ((logValue - logMin) / (logMax - logMin)) * 80 + 20;
+        const percentage = Math.max(logPercentage, 20);
+        
+        const showLabelInside = percentage > 30;
+        
+        // Sort assets by token count and get top 3
+        const assetEntries = Object.entries(holder.assets).map(([id, data]) => ({
+            id,
+            name: data.name,
+            tokens: data.tokens
+        })).sort((a, b) => b.tokens - a.tokens);
+        
+        const top3Assets = assetEntries.slice(0, 3);
+        const otherAssets = assetEntries.slice(3);
+        const otherTotal = otherAssets.reduce((sum, asset) => sum + asset.tokens, 0);
+        
+        const assetBreakdownHTML = `
+            <div class="asset-breakdown" id="breakdown-${index}" style="display: none;">
+                ${top3Assets.map(asset => `
+                    <div class="breakdown-item">
+                        <span class="breakdown-asset-name">${asset.name}</span>
+                        <span class="breakdown-tokens">${asset.tokens} tokens</span>
+                    </div>
+                `).join('')}
+                ${otherTotal > 0 ? `
+                    <div class="breakdown-item">
+                        <span class="breakdown-asset-name">Other (${otherAssets.length} assets)</span>
+                        <span class="breakdown-tokens">${otherTotal} tokens</span>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+        
+        return `
+            <div class="chart-bar-container" onclick="toggleBreakdown(${index})">
+                <div class="chart-rank">${index + 1}</div>
+                <div class="chart-address">${holder.address.substring(0, 10)}...${holder.address.substring(holder.address.length - 8)}</div>
+                <div class="chart-bar-wrapper">
+                    <div class="chart-bar" style="width: ${percentage}%">
+                        ${showLabelInside ? `<span class="chart-bar-label">${holder.tokens.toLocaleString()} tokens</span>` : ''}
+                    </div>
+                    ${!showLabelInside ? `<span class="chart-bar-label-outside">${holder.tokens.toLocaleString()} tokens</span>` : ''}
+                </div>
+            </div>
+            ${assetBreakdownHTML}
+        `;
+    }).join('');
+}
+
+// Toggle asset breakdown
+function toggleBreakdown(index) {
+    const breakdown = document.getElementById(`breakdown-${index}`);
+    const isVisible = breakdown.style.display === 'block';
+    
+    // Hide all other breakdowns
+    document.querySelectorAll('.asset-breakdown').forEach(el => {
+        el.style.display = 'none';
+    });
+    
+    // Toggle current breakdown
+    breakdown.style.display = isVisible ? 'none' : 'block';
 }
 
 // Load top holders across all assets

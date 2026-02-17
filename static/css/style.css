@@ -779,3 +779,221 @@ input[type="number"]:focus,
         position: static;
     }
 }
+
+/* Chart Container */
+.chart-container {
+    background: var(--medium-gray);
+    border: 1px solid var(--light-gray);
+    border-radius: 20px;
+    padding: 40px;
+    margin-bottom: 30px;
+}
+
+.chart-bar-container {
+    display: grid;
+    grid-template-columns: 40px 150px 1fr;
+    gap: 15px;
+    align-items: center;
+    margin-bottom: 5px;
+    padding: 15px;
+    background: var(--dark-gray);
+    border-radius: 12px;
+    border: 1px solid var(--light-gray);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.chart-bar-container:hover {
+    border-color: var(--primary-gold);
+    transform: translateX(5px);
+}
+
+.chart-rank {
+    background: var(--primary-gold);
+    color: var(--black);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 18px;
+}
+
+.chart-address {
+    font-size: 14px;
+    color: var(--text-secondary);
+    font-family: monospace;
+}
+
+.chart-bar-wrapper {
+    position: relative;
+    width: 100%;
+    height: 40px;
+    background: var(--black);
+    border-radius: 8px;
+    overflow: visible;
+}
+
+.chart-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-gold) 0%, var(--dark-gold) 100%);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 15px;
+    transition: width 0.6s ease;
+}
+
+.chart-bar-label {
+    color: var(--black);
+    font-weight: 700;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+.chart-bar-label-outside {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    padding-left: 15px;
+    color: var(--primary-gold);
+    font-weight: 700;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+/* Asset Breakdown */
+.asset-breakdown {
+    background: var(--black);
+    border: 1px solid var(--light-gray);
+    border-radius: 12px;
+    padding: 15px 20px;
+    margin-bottom: 20px;
+    margin-left: 55px;
+    margin-right: 0;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.breakdown-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    margin-bottom: 8px;
+    background: var(--dark-gray);
+    border-radius: 8px;
+    border-left: 3px solid var(--primary-gold);
+}
+
+.breakdown-item:last-child {
+    margin-bottom: 0;
+}
+
+.breakdown-asset-name {
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.breakdown-tokens {
+    color: var(--primary-gold);
+    font-size: 14px;
+    font-weight: 700;
+}
+
+/* Asset Chart Specific */
+.chart-bar-container-asset {
+    display: grid;
+    grid-template-columns: 40px 200px 1fr 100px;
+    gap: 15px;
+    align-items: center;
+    margin-bottom: 15px;
+    padding: 15px;
+    background: var(--dark-gray);
+    border-radius: 12px;
+    border: 1px solid var(--light-gray);
+    transition: all 0.3s ease;
+}
+
+.chart-bar-container-asset:hover {
+    border-color: var(--primary-gold);
+    transform: translateX(5px);
+}
+
+.asset-info-chart {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.asset-name-chart {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.asset-location-chart {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.asset-stats-chart {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.stat-badge {
+    background: var(--primary-gold);
+    color: var(--black);
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+    .chart-bar-container {
+        grid-template-columns: 40px 1fr;
+        gap: 10px;
+    }
+    
+    .chart-address {
+        grid-column: 1 / -1;
+        font-size: 12px;
+    }
+    
+    .asset-breakdown {
+        margin-left: 0;
+    }
+    
+    .chart-bar-container-asset {
+        grid-template-columns: 40px 1fr;
+        gap: 10px;
+    }
+    
+    .asset-info-chart {
+        grid-column: 1 / -1;
+    }
+    
+    .asset-stats-chart {
+        grid-column: 1 / -1;
+        justify-content: flex-start;
+        margin-top: 5px;
+    }
+}

@@ -310,20 +310,72 @@ def get_asset_owners(asset_id):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
+@app.route('/api/top-assets', methods=['GET'])
+def get_top_assets():
+    try:
+        asset_count = contract.functions.getTotalAssets().call()
+        asset_data = []
+        
+        for asset_id in range(1, asset_count + 1):
+            asset_info = contract.functions.getAsset(asset_id).call()
+            owners = contract.functions.getAssetOwners(asset_id).call()
+            
+            # Calculate total distributed tokens (excluding issuer)
+            issuer = asset_info[6]
+            total_distributed = 0
+            owner_count = 0
+            
+            for owner in owners:
+                balance = contract.functions.getBalance(asset_id, owner).call()
+                if owner.lower() != issuer.lower() and balance > 0:
+                    total_distributed += balance
+                    owner_count += 1
+            
+            asset_data.append({
+                'id': asset_info[0],
+                'name': asset_info[1],
+                'location': asset_info[2],
+                'totalTokens': asset_info[4],
+                'distributedTokens': total_distributed,
+                'ownerCount': owner_count,
+                'issuer': issuer
+            })
+        
+        # Sort by distributed tokens and get top 10
+        sorted_assets = sorted(asset_data, key=lambda x: x['distributedTokens'], reverse=True)[:10]
+        
+        return jsonify({'success': True, 'assets': sorted_assets})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
 @app.route('/api/top-holders-all', methods=['GET'])
 def get_top_holders_all():
     try:
         asset_count = contract.functions.getTotalAssets().call()
-        holder_totals = {}
+        holder_data = {}  # {address: {total: X, assets: {assetId: {name: Y, tokens: Z}}}}
         
         for asset_id in range(1, asset_count + 1):
+            asset_info = contract.functions.getAsset(asset_id).call()
+            asset_name = asset_info[1]
             owners = contract.functions.getAssetOwners(asset_id).call()
+            
             for owner in owners:
                 balance = contract.functions.getBalance(asset_id, owner).call()
-                holder_totals[owner] = holder_totals.get(owner, 0) + balance
+                if balance > 0:
+                    if owner not in holder_data:
+                        holder_data[owner] = {'total': 0, 'assets': {}}
+                    holder_data[owner]['total'] += balance
+                    holder_data[owner]['assets'][asset_id] = {
+                        'name': asset_name,
+                        'tokens': balance
+                    }
         
-        sorted_holders = sorted(holder_totals.items(), key=lambda x: x[1], reverse=True)[:10]
-        holders = [{'address': addr, 'tokens': tokens} for addr, tokens in sorted_holders]
+        sorted_holders = sorted(holder_data.items(), key=lambda x: x[1]['total'], reverse=True)[:10]
+        holders = [{
+            'address': addr,
+            'tokens': data['total'],
+            'assets': data['assets']
+        } for addr, data in sorted_holders]
         
         return jsonify({'success': True, 'holders': holders})
     except Exception as e:
